@@ -46,6 +46,8 @@ database, and get a clean, read-only changelog page out of the box.
 - 📖 **Reader page** — a polished, read-only changelog grouped by version with
   date badges and typed sections (built entirely with the Filament schema API,
   no custom Blade)
+- 🔎 **Search, version filter & infinite scroll** on the reader — find entries as
+  you type, jump to a single version, and load version cards as you scroll
 - 📝 Management resource to create/read/edit entries, grouped by version
 - 🏷️ Typed changes (Added, Changed, Deprecated, Removed, Fixed, Security) with colored badges
 - ⬆️ **Import** an existing `CHANGELOG.md` (upload, paste, or `changelog:import`)

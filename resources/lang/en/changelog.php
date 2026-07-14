@@ -57,5 +57,9 @@ return [
     'reader' => [
         'unreleased' => 'Unreleased',
         'empty' => 'No changelog entries yet.',
+        'search_placeholder' => 'Search the changelog…',
+        'all_versions' => 'All versions',
+        'no_results' => 'No entries match your search.',
+        'loading' => 'Loading more…',
     ],
 ];

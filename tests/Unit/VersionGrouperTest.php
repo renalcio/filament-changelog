@@ -3,6 +3,8 @@
 use Filament\Changelog\Enums\ChangeType;
 use Filament\Changelog\Models\ChangelogEntry;
 use Filament\Changelog\Support\VersionGrouper;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection as SupportCollection;
 
 function makeEntry(array $attributes): ChangelogEntry
 {
@@ -44,4 +46,24 @@ it('omits type buckets with no entries', function () {
     $group = collect([makeEntry(['type' => ChangeType::Added])]);
 
     expect((new VersionGrouper)->byType($group))->toHaveCount(1);
+});
+
+it('returns a plain support collection so key methods work on eloquent input', function () {
+    // Grouping an Eloquent collection must not leak an Eloquent collection,
+    // whose only()/except() expect model keys and call getKey() on the groups.
+    $entries = new EloquentCollection([
+        makeEntry(['version' => '1.0.0', 'released_at' => '2024-01-15']),
+        makeEntry(['version' => '1.1.0', 'released_at' => '2024-03-10']),
+    ]);
+
+    $groups = (new VersionGrouper)->group($entries);
+
+    expect($groups)->toBeInstanceOf(SupportCollection::class)
+        ->and($groups)->not->toBeInstanceOf(EloquentCollection::class);
+
+    // The reader filters to a single version with only() — this used to throw.
+    $only = $groups->only(['1.1.0']);
+
+    expect($only->keys()->all())->toBe(['1.1.0'])
+        ->and($only->get('1.1.0'))->toHaveCount(1);
 });

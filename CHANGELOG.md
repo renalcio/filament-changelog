@@ -8,10 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Reader page **search** — a live search box that filters entries (and the
+  change-type sections within each version) as you type.
+- Reader page **version filter** — a searchable select to jump to a single
+  version.
+- Reader page **infinite scroll** — version cards load in batches as you scroll,
+  keeping large changelogs fast.
 - Read the changelog from a **remote URL** (e.g. a GitHub raw `CHANGELOG.md`)
   via `->fromUrl()` / `->file('https://…')`, with a configurable fetch cache.
 - Auto-convert GitHub `blob`/`raw` web URLs to `raw.githubusercontent.com`, so a
   normal repo file link works directly.
+
+### Fixed
+- Filtering the reader by version no longer throws when entries come from the
+  database (`VersionGrouper::group()` now returns a plain collection, so
+  `only()` works instead of calling `getKey()` on the groups).
 
 ### Changed
 - More tolerant parser: unrecognised `###` headings (e.g. GitHub's

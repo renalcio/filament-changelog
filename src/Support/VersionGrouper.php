@@ -19,7 +19,10 @@ class VersionGrouper
      */
     public function group(Collection $entries): Collection
     {
-        return $entries
+        // Wrap in a base collection first: grouping an Eloquent collection would
+        // yield an Eloquent collection whose key-based methods (only/except)
+        // expect model keys and call getKey() on the groups.
+        return collect($entries->all())
             ->groupBy('version')
             ->sortBy(function (Collection $group, string $version): string {
                 if (strtolower($version) === 'unreleased') {

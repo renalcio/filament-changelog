@@ -56,6 +56,10 @@ return [
 
     'reader' => [
         'unreleased' => 'Por lançar',
-        'empty' => 'Ainda não há entradas no registo.',
+        'empty' => 'Ainda não há registos no changelog.',
+        'search_placeholder' => 'Pesquisar no changelog…',
+        'all_versions' => 'Todas as versões',
+        'no_results' => 'Nenhum registo corresponde à pesquisa.',
+        'loading' => 'A carregar mais…',
     ],
 ];

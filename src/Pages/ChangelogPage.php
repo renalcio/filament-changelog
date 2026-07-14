@@ -12,11 +12,15 @@ use Filament\Changelog\Support\ChangelogSource;
 use Filament\Changelog\Support\ChangelogWriter;
 use Filament\Changelog\Support\VersionGrouper;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Pages\Page;
 use Filament\Panel;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
@@ -27,6 +31,31 @@ use UnitEnum;
 
 class ChangelogPage extends Page
 {
+    /**
+     * Number of version cards revealed per infinite-scroll step.
+     */
+    protected const PER_PAGE = 8;
+
+    /**
+     * Toolbar state (search term + selected version), bound via `statePath`.
+     *
+     * @var array<string, mixed>
+     */
+    public ?array $data = [];
+
+    /**
+     * How many version cards are currently visible (grows on scroll).
+     */
+    public int $limit = self::PER_PAGE;
+
+    public function mount(): void
+    {
+        $this->data = [
+            'search' => '',
+            'version' => null,
+        ];
+    }
+
     protected static function plugin(): ChangelogPlugin
     {
         try {
@@ -107,6 +136,22 @@ class ChangelogPage extends Page
         return config('changelog.navigation.page.slug', 'changelog');
     }
 
+    /**
+     * Reveal the next batch of version cards (called by the scroll sentinel).
+     */
+    public function loadMore(): void
+    {
+        $this->limit += static::PER_PAGE;
+    }
+
+    /**
+     * Reset paging whenever a filter changes so results start from the top.
+     */
+    public function resetLimit(): void
+    {
+        $this->limit = static::PER_PAGE;
+    }
+
     protected function getHeaderActions(): array
     {
         return [
@@ -143,25 +188,139 @@ class ChangelogPage extends Page
 
         if ($entries->isEmpty()) {
             return $schema->components([
-                Section::make()
-                    ->schema([
-                        Text::make(__('changelog::changelog.reader.empty'))
-                            ->color('gray'),
-                    ]),
+                Section::make()->schema([
+                    Text::make(__('changelog::changelog.reader.empty'))->color('gray'),
+                ]),
             ]);
         }
 
+        return $schema
+            ->statePath('data')
+            ->components([
+                $this->toolbar($entries),
+                Grid::make(1)
+                    ->key('changelog-list')
+                    ->schema(fn (Get $get): array => $this->list(
+                        (string) ($get('search') ?? ''),
+                        $get('version'),
+                    )),
+            ]);
+    }
+
+    /**
+     * Search box + version filter, both live so the list reacts instantly.
+     */
+    protected function toolbar(Collection $entries): Grid
+    {
+        return Grid::make(['default' => 1, 'sm' => 3])
+            ->schema([
+                TextInput::make('search')
+                    ->hiddenLabel()
+                    ->placeholder(__('changelog::changelog.reader.search_placeholder'))
+                    ->prefixIcon(Heroicon::MagnifyingGlass)
+                    ->live(debounce: 350)
+                    ->afterStateUpdated(fn () => $this->resetLimit())
+                    ->columnSpan(['default' => 1, 'sm' => 2]),
+
+                Select::make('version')
+                    ->hiddenLabel()
+                    ->placeholder(__('changelog::changelog.reader.all_versions'))
+                    ->options($this->versionOptions($entries))
+                    ->native(false)
+                    ->searchable()
+                    ->live()
+                    ->afterStateUpdated(fn () => $this->resetLimit())
+                    ->columnSpan(1),
+            ]);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function versionOptions(Collection $entries): array
+    {
+        return (new VersionGrouper)->group($entries)
+            ->keys()
+            ->mapWithKeys(fn (string $version): array => [$version => $this->versionHeading($version)])
+            ->all();
+    }
+
+    /**
+     * Build the (filtered, paginated) list of version cards, appending an
+     * intersection sentinel when more cards remain to be revealed.
+     *
+     * @return array<int, \Filament\Schemas\Components\Component>
+     */
+    protected function list(string $search, ?string $version): array
+    {
         $grouper = new VersionGrouper;
 
-        $sections = $grouper->group($entries)
-            ->map(fn (Collection $group, string $version): Section => $this->versionSection($version, $group, $grouper))
+        $entries = $this->filter(ChangelogSource::entries(), $search);
+
+        $groups = $grouper->group($entries);
+
+        if ($version !== null && $version !== '') {
+            $groups = $groups->only([$version]);
+        }
+
+        if ($groups->isEmpty()) {
+            return [
+                Section::make()->schema([
+                    Text::make(__('changelog::changelog.reader.no_results'))->color('gray'),
+                ]),
+            ];
+        }
+
+        $total = $groups->count();
+
+        $sections = $groups
+            ->take($this->limit)
+            ->map(fn (Collection $group, string $v): Section => $this->versionSection($v, $group, $grouper, $search))
             ->values()
             ->all();
 
-        return $schema->components($sections);
+        if ($total > $this->limit) {
+            $sections[] = $this->loadMoreSentinel();
+        }
+
+        return $sections;
     }
 
-    protected function versionSection(string $version, Collection $group, VersionGrouper $grouper): Section
+    /**
+     * Keep only entries whose description (or version) matches the search term.
+     */
+    protected function filter(Collection $entries, string $search): Collection
+    {
+        $search = trim($search);
+
+        if ($search === '') {
+            return $entries;
+        }
+
+        $needle = mb_strtolower($search);
+
+        return $entries->filter(function (ChangelogEntry $entry) use ($needle): bool {
+            return str_contains(mb_strtolower((string) $entry->description), $needle)
+                || str_contains(mb_strtolower((string) $entry->version), $needle);
+        })->values();
+    }
+
+    protected function loadMoreSentinel(): Grid
+    {
+        return Grid::make(1)
+            ->key('changelog-load-more-'.$this->limit)
+            ->extraAttributes([
+                'x-intersect.margin.600px.once' => '$wire.loadMore()',
+                'class' => 'flex justify-center py-2',
+            ])
+            ->schema([
+                Text::make(__('changelog::changelog.reader.loading'))
+                    ->color('gray')
+                    ->size('sm'),
+            ]);
+    }
+
+    protected function versionSection(string $version, Collection $group, VersionGrouper $grouper, string $search = ''): Section
     {
         $body = $grouper->byType($group)
             ->map(function (array $bucket): string {
@@ -177,7 +336,7 @@ class ChangelogPage extends Page
             ->heading($this->versionHeading($version))
             ->afterHeader($this->dateBadge($group))
             ->schema([
-                TextEntry::make('body_'.md5($version))
+                TextEntry::make('body_'.md5($version.'|'.$search))
                     ->hiddenLabel()
                     ->state($body)
                     ->markdown(),

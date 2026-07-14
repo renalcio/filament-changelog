@@ -41,9 +41,11 @@ class KeepAChangelogParser
                 continue;
             }
 
-            // Type header:  ### Added
+            // Type header:  ### Added   (an unrecognised heading such as the
+            // GitHub-release "### What's Changed" falls back to "Changed", so
+            // release-notes style changelogs still parse).
             if (preg_match('/^###\s+(.+)$/', $trimmed, $m)) {
-                $currentType = ChangeType::fromHeading($m[1]);
+                $currentType = ChangeType::fromHeading($m[1]) ?? ChangeType::Changed;
 
                 continue;
             }
@@ -78,28 +80,44 @@ class KeepAChangelogParser
     {
         $heading = trim($heading);
 
-        // Strip surrounding brackets/links: [1.2.0] or [1.2.0](url)
-        if (preg_match('/^\[([^\]]+)\](?:\([^)]*\))?\s*(?:-\s*(.+))?$/', $heading, $m)) {
+        // Version token: bracketed [1.2.0] (optionally linked), else the first
+        // whitespace/paren-delimited token (1.2.0, v19.1.1, …).
+        if (preg_match('/^\[([^\]]+)\]/', $heading, $m)) {
             $version = trim($m[1]);
-            $date = isset($m[2]) ? trim($m[2]) : null;
-        } elseif (preg_match('/^([^\s-]+)\s*(?:-\s*(.+))?$/', $heading, $m)) {
+        } elseif (preg_match('/^([^\s(]+)/', $heading, $m)) {
             $version = trim($m[1]);
-            $date = isset($m[2]) ? trim($m[2]) : null;
         } else {
             $version = $heading;
-            $date = null;
         }
 
         $isReleased = strtolower($version) !== 'unreleased';
-        $releasedAt = null;
+        $releasedAt = $isReleased ? $this->extractDate($heading, $version) : null;
 
-        if ($isReleased && $date) {
-            $ts = strtotime($date);
+        return [$version, $releasedAt, $isReleased];
+    }
+
+    /**
+     * Find a release date in a version heading, supporting several styles:
+     * "- 2024-03-10", "(2026-06-25)", "- May 25, 2024", …
+     */
+    protected function extractDate(string $heading, string $version): ?string
+    {
+        // Prefer an explicit ISO date anywhere after the version token.
+        $afterVersion = trim((string) preg_replace('/^\S+/', '', $heading));
+
+        if (preg_match('/(\d{4}-\d{2}-\d{2})/', $afterVersion, $m)) {
+            return $m[1];
+        }
+
+        // Fall back to a trailing "- <date>" or "(<date>)" segment.
+        if (preg_match('/[-(]\s*([^)]+?)\s*\)?$/', $afterVersion, $m)) {
+            $ts = strtotime(trim($m[1]));
+
             if ($ts !== false) {
-                $releasedAt = date('Y-m-d', $ts);
+                return date('Y-m-d', $ts);
             }
         }
 
-        return [$version, $releasedAt, $isReleased];
+        return null;
     }
 }

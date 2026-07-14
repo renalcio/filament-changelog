@@ -50,6 +50,29 @@ it('keeps a stable sort order across the whole document', function () {
     expect(array_column($entries, 'sort'))->toBe([0, 1, 2]);
 });
 
+it('parses parenthesised dates and v-prefixed versions (GitLab style)', function () {
+    $md = "## v19.1.1 (2026-06-25)\n### Bug fixes\n- Fixed the runner";
+
+    $entries = (new KeepAChangelogParser)->parse($md);
+
+    expect($entries[0])->toMatchArray([
+        'version' => 'v19.1.1',
+        'released_at' => '2026-06-25',
+        'is_released' => true,
+    ]);
+});
+
+it('parses linked version headings with a trailing date (conventional-changelog)', function () {
+    $md = "## [v12.63.0](https://github.com/acme/app/compare/v12.62.0...v12.63.0) - 2026-07-07\n### Added\n- Thing";
+
+    $entries = (new KeepAChangelogParser)->parse($md);
+
+    expect($entries[0])->toMatchArray([
+        'version' => 'v12.63.0',
+        'released_at' => '2026-07-07',
+    ]);
+});
+
 it('supports asterisk bullets and linked version headings', function () {
     $md = "## [1.0.0](https://example.com/releases/1.0.0) - 2024-01-01\n### Added\n* Something";
 
@@ -67,6 +90,19 @@ it('ignores bullets that appear before any version/type heading', function () {
 
     expect($entries)->toHaveCount(1);
     expect($entries[0]['description'])->toBe('real');
+});
+
+it('falls back to Changed for unrecognised headings (GitHub release notes)', function () {
+    $md = "## 8.3.0 - 2026-07-03\n### What's Changed\n* Fixed a thing by @user\n* Added another by @user";
+
+    $entries = (new KeepAChangelogParser)->parse($md);
+
+    expect($entries)->toHaveCount(2);
+    expect($entries[0])->toMatchArray([
+        'version' => '8.3.0',
+        'type' => ChangeType::Changed,
+        'description' => 'Fixed a thing by @user',
+    ]);
 });
 
 it('returns an empty array for content that is not keep-a-changelog', function () {

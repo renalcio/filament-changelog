@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Auto-convert GitHub `blob`/`raw` web URLs to `raw.githubusercontent.com`, so a
   normal repo file link works directly.
 
+### Changed
+- More tolerant parser: unrecognised `###` headings (e.g. GitHub's
+  "What's Changed") fall back to the *Changed* group, and release dates are
+  detected in more styles — `(2026-06-25)`, `v`-prefixed and linked version
+  headings — so real-world changelogs from GitHub, GitLab and
+  conventional-changelog tools parse cleanly.
+
 ## [1.0.0] - 2026-07-14
 
 ### Added

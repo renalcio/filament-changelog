@@ -109,6 +109,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Reader page
+    |--------------------------------------------------------------------------
+    |
+    | Behaviour of the read-only changelog reader:
+    |   - per_page             : version cards revealed per infinite-scroll step
+    |   - searchable           : show the live search box
+    |   - filterable_by_version: show the version filter select
+    |
+    */
+    'reader' => [
+        'per_page' => 8,
+        'searchable' => true,
+        'filterable_by_version' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Navigation
     |--------------------------------------------------------------------------
     |

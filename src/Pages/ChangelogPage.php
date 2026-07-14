@@ -17,6 +17,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Pages\Page;
 use Filament\Panel;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
@@ -54,6 +55,8 @@ class ChangelogPage extends Page
             'search' => '',
             'version' => null,
         ];
+
+        $this->limit = $this->perPage();
     }
 
     protected static function plugin(): ChangelogPlugin
@@ -141,7 +144,7 @@ class ChangelogPage extends Page
      */
     public function loadMore(): void
     {
-        $this->limit += static::PER_PAGE;
+        $this->limit += $this->perPage();
     }
 
     /**
@@ -149,7 +152,12 @@ class ChangelogPage extends Page
      */
     public function resetLimit(): void
     {
-        $this->limit = static::PER_PAGE;
+        $this->limit = $this->perPage();
+    }
+
+    protected function perPage(): int
+    {
+        return max(1, (int) config('changelog.reader.per_page', static::PER_PAGE));
     }
 
     protected function getHeaderActions(): array
@@ -194,44 +202,64 @@ class ChangelogPage extends Page
             ]);
         }
 
+        $components = [];
+
+        if ($toolbar = $this->toolbar($entries)) {
+            $components[] = $toolbar;
+        }
+
+        $components[] = Grid::make(1)
+            ->key('changelog-list')
+            ->schema(fn (Get $get): array => $this->list(
+                (string) ($get('search') ?? ''),
+                $get('version'),
+            ));
+
         return $schema
             ->statePath('data')
-            ->components([
-                $this->toolbar($entries),
-                Grid::make(1)
-                    ->key('changelog-list')
-                    ->schema(fn (Get $get): array => $this->list(
-                        (string) ($get('search') ?? ''),
-                        $get('version'),
-                    )),
-            ]);
+            ->components($components);
     }
 
     /**
      * Search box + version filter, both live so the list reacts instantly.
+     * Either can be turned off; returns null when both are disabled.
      */
-    protected function toolbar(Collection $entries): Grid
+    protected function toolbar(Collection $entries): ?Grid
     {
-        return Grid::make(['default' => 1, 'sm' => 3])
-            ->schema([
-                TextInput::make('search')
-                    ->hiddenLabel()
-                    ->placeholder(__('changelog::changelog.reader.search_placeholder'))
-                    ->prefixIcon(Heroicon::MagnifyingGlass)
-                    ->live(debounce: 350)
-                    ->afterStateUpdated(fn () => $this->resetLimit())
-                    ->columnSpan(['default' => 1, 'sm' => 2]),
+        $searchable = (bool) config('changelog.reader.searchable', true);
+        $filterable = (bool) config('changelog.reader.filterable_by_version', true);
 
-                Select::make('version')
-                    ->hiddenLabel()
-                    ->placeholder(__('changelog::changelog.reader.all_versions'))
-                    ->options($this->versionOptions($entries))
-                    ->native(false)
-                    ->searchable()
-                    ->live()
-                    ->afterStateUpdated(fn () => $this->resetLimit())
-                    ->columnSpan(1),
-            ]);
+        if (! $searchable && ! $filterable) {
+            return null;
+        }
+
+        $both = $searchable && $filterable;
+        $fields = [];
+
+        if ($searchable) {
+            $fields[] = TextInput::make('search')
+                ->hiddenLabel()
+                ->placeholder(__('changelog::changelog.reader.search_placeholder'))
+                ->prefixIcon(Heroicon::MagnifyingGlass)
+                ->live(debounce: 350)
+                ->afterStateUpdated(fn () => $this->resetLimit())
+                ->columnSpan($both ? ['default' => 1, 'sm' => 2] : 1);
+        }
+
+        if ($filterable) {
+            $fields[] = Select::make('version')
+                ->hiddenLabel()
+                ->placeholder(__('changelog::changelog.reader.all_versions'))
+                ->options($this->versionOptions($entries))
+                ->native(false)
+                ->searchable()
+                ->live()
+                ->afterStateUpdated(fn () => $this->resetLimit())
+                ->columnSpan(1);
+        }
+
+        return Grid::make(['default' => 1, 'sm' => $both ? 3 : 1])
+            ->schema($fields);
     }
 
     /**
@@ -249,7 +277,7 @@ class ChangelogPage extends Page
      * Build the (filtered, paginated) list of version cards, appending an
      * intersection sentinel when more cards remain to be revealed.
      *
-     * @return array<int, \Filament\Schemas\Components\Component>
+     * @return array<int, Component>
      */
     protected function list(string $search, ?string $version): array
     {

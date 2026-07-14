@@ -5,6 +5,15 @@ All notable changes to `filament-changelog` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-07-14
+
+### Added
+- Complete the fluent plugin API so every option is configurable on
+  `ChangelogPlugin::make()` (and documented in one place): `perPage()`,
+  `searchable()`, `filterableByVersion()`, `dateFormat()`, `changeTypes()`,
+  `slug()`, `resourceSlug()`, `remoteCacheTtl()`, `policy()` and
+  `multiProject()`. Anything left unset still falls back to `config/changelog.php`.
+
 ## [1.0.0] - 2026-07-14
 
 First public release.

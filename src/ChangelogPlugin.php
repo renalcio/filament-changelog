@@ -4,10 +4,12 @@ namespace Filament\Changelog;
 
 use BackedEnum;
 use Closure;
+use Filament\Changelog\Models\ChangelogEntry;
 use Filament\Changelog\Pages\ChangelogPage;
 use Filament\Changelog\Resources\ChangelogEntryResource;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
+use Illuminate\Support\Facades\Gate;
 use UnitEnum;
 
 class ChangelogPlugin implements Plugin
@@ -36,6 +38,27 @@ class ChangelogPlugin implements Plugin
 
     protected string|Closure|null $file = null;
 
+    protected int|Closure|null $perPage = null;
+
+    protected bool|Closure|null $searchable = null;
+
+    protected bool|Closure|null $filterableByVersion = null;
+
+    protected string|Closure|null $dateFormat = null;
+
+    /** @var array<int, string>|Closure|null */
+    protected array|Closure|null $changeTypes = null;
+
+    protected string|Closure|null $pageSlug = null;
+
+    protected string|Closure|null $resourceSlug = null;
+
+    protected int|Closure|null $remoteCacheTtl = null;
+
+    protected string|Closure|null $policy = null;
+
+    protected bool|Closure|null $multiProject = null;
+
     public static function make(): static
     {
         return app(static::class);
@@ -60,6 +83,10 @@ class ChangelogPlugin implements Plugin
             return;
         }
 
+        // Any option set fluently overrides config, so every consumer can keep
+        // reading config('changelog.*') without knowing about the plugin.
+        $this->applyConfiguration();
+
         $panel
             ->resources([
                 ChangelogEntryResource::class,
@@ -67,6 +94,34 @@ class ChangelogPlugin implements Plugin
             ->pages([
                 ChangelogPage::class,
             ]);
+    }
+
+    protected function applyConfiguration(): void
+    {
+        $overrides = array_filter([
+            'changelog.reader.per_page' => $this->perPage === null ? null : (int) value($this->perPage),
+            'changelog.reader.searchable' => $this->searchable === null ? null : (bool) value($this->searchable),
+            'changelog.reader.filterable_by_version' => $this->filterableByVersion === null ? null : (bool) value($this->filterableByVersion),
+            'changelog.date_format' => value($this->dateFormat),
+            'changelog.types' => value($this->changeTypes),
+            'changelog.navigation.page.slug' => value($this->pageSlug),
+            'changelog.navigation.resource.slug' => value($this->resourceSlug),
+            'changelog.remote_cache_ttl' => $this->remoteCacheTtl === null ? null : (int) value($this->remoteCacheTtl),
+            'changelog.multi_project' => $this->multiProject === null ? null : (bool) value($this->multiProject),
+            'changelog.policy' => value($this->policy),
+        ], fn ($value): bool => $value !== null);
+
+        if ($overrides !== []) {
+            config($overrides);
+        }
+
+        // The ServiceProvider binds the policy at boot from config; rebind here
+        // when a policy is set fluently (register runs after that boot).
+        $policy = value($this->policy);
+
+        if (is_string($policy) && class_exists($policy)) {
+            Gate::policy(ChangelogEntry::class, $policy);
+        }
     }
 
     public function boot(Panel $panel): void
@@ -260,5 +315,172 @@ class ChangelogPlugin implements Plugin
     public function getPluralModelLabel(): ?string
     {
         return value($this->pluralModelLabel);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reader page
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Version cards revealed per infinite-scroll step.
+     */
+    public function perPage(int|Closure|null $count): static
+    {
+        $this->perPage = $count;
+
+        return $this;
+    }
+
+    /**
+     * Toggle the reader's live search box.
+     */
+    public function searchable(bool|Closure|null $condition = true): static
+    {
+        $this->searchable = $condition;
+
+        return $this;
+    }
+
+    /**
+     * Toggle the reader's version filter select.
+     */
+    public function filterableByVersion(bool|Closure|null $condition = true): static
+    {
+        $this->filterableByVersion = $condition;
+
+        return $this;
+    }
+
+    public function getPerPage(): ?int
+    {
+        return $this->perPage === null ? null : (int) value($this->perPage);
+    }
+
+    public function isSearchable(): ?bool
+    {
+        return $this->searchable === null ? null : (bool) value($this->searchable);
+    }
+
+    public function isFilterableByVersion(): ?bool
+    {
+        return $this->filterableByVersion === null ? null : (bool) value($this->filterableByVersion);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Formatting, slugs and advanced options
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * PHP date() format for the release-date badge.
+     */
+    public function dateFormat(string|Closure|null $format): static
+    {
+        $this->dateFormat = $format;
+
+        return $this;
+    }
+
+    /**
+     * Change-type keys in render order (added, changed, deprecated, …).
+     *
+     * @param  array<int, string>|Closure|null  $types
+     */
+    public function changeTypes(array|Closure|null $types): static
+    {
+        $this->changeTypes = $types;
+
+        return $this;
+    }
+
+    /**
+     * Route slug of the reader page.
+     */
+    public function slug(string|Closure|null $slug): static
+    {
+        $this->pageSlug = $slug;
+
+        return $this;
+    }
+
+    /**
+     * Route slug of the management resource.
+     */
+    public function resourceSlug(string|Closure|null $slug): static
+    {
+        $this->resourceSlug = $slug;
+
+        return $this;
+    }
+
+    /**
+     * Cache TTL (seconds) for a remote CHANGELOG.md URL; 0 disables caching.
+     */
+    public function remoteCacheTtl(int|Closure|null $seconds): static
+    {
+        $this->remoteCacheTtl = $seconds;
+
+        return $this;
+    }
+
+    /**
+     * Policy class bound to the ChangelogEntry model.
+     */
+    public function policy(string|Closure|null $policy): static
+    {
+        $this->policy = $policy;
+
+        return $this;
+    }
+
+    /**
+     * Scope entries by a "project" column so one app tracks many changelogs.
+     */
+    public function multiProject(bool|Closure|null $condition = true): static
+    {
+        $this->multiProject = $condition;
+
+        return $this;
+    }
+
+    public function getDateFormat(): ?string
+    {
+        return value($this->dateFormat);
+    }
+
+    /**
+     * @return array<int, string>|null
+     */
+    public function getChangeTypes(): ?array
+    {
+        return value($this->changeTypes);
+    }
+
+    public function getSlug(): ?string
+    {
+        return value($this->pageSlug);
+    }
+
+    public function getResourceSlug(): ?string
+    {
+        return value($this->resourceSlug);
+    }
+
+    public function getRemoteCacheTtl(): ?int
+    {
+        return $this->remoteCacheTtl === null ? null : (int) value($this->remoteCacheTtl);
+    }
+
+    public function getPolicy(): ?string
+    {
+        return value($this->policy);
+    }
+
+    public function isMultiProject(): ?bool
+    {
+        return $this->multiProject === null ? null : (bool) value($this->multiProject);
     }
 }

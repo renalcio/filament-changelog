@@ -61,3 +61,48 @@ it('fromUrl() points the file source at a remote URL', function () {
     expect($plugin->getSource())->toBe('file');
     expect($plugin->getFile())->toBe($url);
 });
+
+it('leaves every optional setting unset (null) by default', function () {
+    $plugin = ChangelogPlugin::make();
+
+    expect($plugin->getPerPage())->toBeNull();
+    expect($plugin->isSearchable())->toBeNull();
+    expect($plugin->isFilterableByVersion())->toBeNull();
+    expect($plugin->getDateFormat())->toBeNull();
+    expect($plugin->getChangeTypes())->toBeNull();
+    expect($plugin->getSlug())->toBeNull();
+    expect($plugin->getResourceSlug())->toBeNull();
+    expect($plugin->getRemoteCacheTtl())->toBeNull();
+    expect($plugin->getPolicy())->toBeNull();
+    expect($plugin->isMultiProject())->toBeNull();
+});
+
+it('exposes fluent reader options', function () {
+    $plugin = ChangelogPlugin::make()
+        ->perPage(20)
+        ->searchable(false)
+        ->filterableByVersion(fn () => true);
+
+    expect($plugin->getPerPage())->toBe(20);
+    expect($plugin->isSearchable())->toBeFalse();
+    expect($plugin->isFilterableByVersion())->toBeTrue();
+});
+
+it('exposes fluent formatting, slug and advanced options', function () {
+    $plugin = ChangelogPlugin::make()
+        ->dateFormat('Y-m-d')
+        ->changeTypes(['added', 'fixed'])
+        ->slug('releases')
+        ->resourceSlug('releases/manage')
+        ->remoteCacheTtl(0)
+        ->policy('App\\Policies\\ChangelogEntryPolicy')
+        ->multiProject();
+
+    expect($plugin->getDateFormat())->toBe('Y-m-d');
+    expect($plugin->getChangeTypes())->toBe(['added', 'fixed']);
+    expect($plugin->getSlug())->toBe('releases');
+    expect($plugin->getResourceSlug())->toBe('releases/manage');
+    expect($plugin->getRemoteCacheTtl())->toBe(0);
+    expect($plugin->getPolicy())->toBe('App\\Policies\\ChangelogEntryPolicy');
+    expect($plugin->isMultiProject())->toBeTrue();
+});

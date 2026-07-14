@@ -79,19 +79,49 @@ public function panel(Panel $panel): Panel
 
 ### Customizing the plugin
 
-Fluent methods (each accepts a value or a `Closure`), mirroring other Filament
-plugins — everything falls back to the translations/config when not set:
+Every option is available as a fluent method (each accepts a value or a
+`Closure`), mirroring other Filament plugins. **Anything you don't set falls back
+to the translations / `config/changelog.php`**, so you only call what you need.
+This is the full list:
 
 ```php
 ChangelogPlugin::make()
+    // Navigation
     ->navigationLabel('What\'s new')            // string|Closure|null
     ->navigationIcon('heroicon-o-sparkles')     // string|BackedEnum|Closure|null
     ->activeNavigationIcon('heroicon-s-sparkles')
     ->navigationGroup('Docs')                   // string|UnitEnum|Closure|null
     ->navigationSort(1)                         // int|Closure|null
-    ->registerNavigation(true)                  // bool|Closure
+    ->registerNavigation(true)                  // bool|Closure — show a nav item at all
+
+    // Labels
     ->modelLabel('release note')                // string|Closure|null
-    ->pluralModelLabel('release notes');        // string|Closure|null
+    ->pluralModelLabel('release notes')         // string|Closure|null
+
+    // Reader page
+    ->perPage(8)                                // int|Closure|null — cards per infinite-scroll step
+    ->searchable(true)                          // bool|Closure|null — show the search box
+    ->filterableByVersion(true)                 // bool|Closure|null — show the version filter
+
+    // Formatting
+    ->dateFormat('d M Y')                       // string|Closure|null — release-date badge format
+    ->changeTypes(['added', 'fixed'])           // array|Closure|null — types + render order
+
+    // Source (see "Reader source & file path" below)
+    ->source('database')                        // 'database' | 'file'
+    ->file('CHANGELOG.md')                      // string|Closure|null — local path or remote URL
+    ->fromFile('CHANGELOG.md')                  // shortcut: source('file') + file(...)
+    ->fromUrl('https://…/CHANGELOG.md')         // shortcut for a remote file
+    ->remoteCacheTtl(300)                       // int|Closure|null — cache seconds for a remote URL (0 = off)
+
+    // Authorization (see "Authorization" below)
+    ->canManage(fn ($user) => $user?->hasRole('admin')) // bool|Closure|null — null defers to the policy
+    ->policy(\App\Policies\ChangelogEntryPolicy::class)  // string|Closure|null — policy bound to the model
+
+    // Routing & data
+    ->slug('changelog')                         // string|Closure|null — reader page route slug
+    ->resourceSlug('changelog/manage')          // string|Closure|null — management route slug
+    ->multiProject(false);                      // bool|Closure|null — scope entries by a "project" column
 ```
 
 ### Authorization (who can manage)

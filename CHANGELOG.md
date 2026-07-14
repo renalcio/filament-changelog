@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 - Read the changelog from a **remote URL** (e.g. a GitHub raw `CHANGELOG.md`)
   via `->fromUrl()` / `->file('https://…')`, with a configurable fetch cache.
+- Auto-convert GitHub `blob`/`raw` web URLs to `raw.githubusercontent.com`, so a
+  normal repo file link works directly.
 
 ## [1.0.0] - 2026-07-14
 

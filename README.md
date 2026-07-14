@@ -168,6 +168,14 @@ ChangelogPlugin::make()
     ->fromUrl('https://raw.githubusercontent.com/acme/app/main/CHANGELOG.md');
 ```
 
+You can also paste the **normal GitHub file URL** — `github.com/.../blob/...`
+links are auto-converted to their raw form, so this works too:
+
+```php
+ChangelogPlugin::make()
+    ->fromUrl('https://github.com/acme/app/blob/main/CHANGELOG.md');
+```
+
 In `file` mode the panel's edit/export buttons are hidden — the file is the
 single source of truth, and every page load re-parses it, so what you see always
 matches the file on disk.

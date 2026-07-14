@@ -61,6 +61,20 @@ class ChangelogSource
     }
 
     /**
+     * Turn a GitHub "blob"/"raw" web URL into its raw.githubusercontent.com
+     * equivalent, so a normal repo link fetches the actual markdown instead of
+     * the rendered HTML page. Other URLs are returned unchanged.
+     */
+    public static function normalizeUrl(string $url): string
+    {
+        return preg_replace(
+            '#^https://github\.com/([^/]+)/([^/]+)/(?:blob|raw)/(.+)$#',
+            'https://raw.githubusercontent.com/$1/$2/$3',
+            $url,
+        ) ?? $url;
+    }
+
+    /**
      * Read a value from the registered plugin, safely (e.g. in console there
      * may be no current panel). Returns null when unavailable.
      */
@@ -111,6 +125,8 @@ class ChangelogSource
      */
     protected static function fetch(string $url): ?string
     {
+        $url = static::normalizeUrl($url);
+
         $get = function () use ($url): ?string {
             try {
                 $response = Http::timeout((int) config('changelog.remote_timeout', 5))->get($url);

@@ -5,44 +5,27 @@ All notable changes to `filament-changelog` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
-
-### Added
-- Reader page **search** — a live search box that filters entries (and the
-  change-type sections within each version) as you type.
-- Reader page **version filter** — a searchable select to jump to a single
-  version.
-- Reader page **infinite scroll** — version cards load in batches as you scroll,
-  keeping large changelogs fast.
-- Read the changelog from a **remote URL** (e.g. a GitHub raw `CHANGELOG.md`)
-  via `->fromUrl()` / `->file('https://…')`, with a configurable fetch cache.
-- Auto-convert GitHub `blob`/`raw` web URLs to `raw.githubusercontent.com`, so a
-  normal repo file link works directly.
-
-### Fixed
-- Filtering the reader by version no longer throws when entries come from the
-  database (`VersionGrouper::group()` now returns a plain collection, so
-  `only()` works instead of calling `getKey()` on the groups).
-
-### Changed
-- More tolerant parser: unrecognised `###` headings (e.g. GitHub's
-  "What's Changed") fall back to the *Changed* group, and release dates are
-  detected in more styles — `(2026-06-25)`, `v`-prefixed and linked version
-  headings — so real-world changelogs from GitHub, GitLab and
-  conventional-changelog tools parse cleanly.
-
 ## [1.0.0] - 2026-07-14
+
+First public release.
 
 ### Added
 - Read-only **Changelog** reader page, grouped by version with date badges and
   typed sections — built entirely with the Filament schema API (no custom Blade).
+- Reader **search, version filter and infinite scroll** — find entries as you
+  type, jump to a single version, and load version cards in batches as you scroll.
 - **Management resource** to create, view, edit and delete entries, grouped by
   version with colored type badges and filters.
 - **Import** a `CHANGELOG.md` (upload, paste, or `changelog:import`) and
   **export** the database back to a file (download, or `changelog:export`).
 - **Hybrid source**: read from the database or parse the project's
   `CHANGELOG.md` live on every visit (`CHANGELOG_SOURCE`, `CHANGELOG_FILE`).
-- Keep a Changelog **parser** and **writer** with a clean round-trip.
+- Read the changelog from a **remote URL** (e.g. a GitHub raw `CHANGELOG.md`)
+  via `->fromUrl()` / `->file('https://…')`, with a configurable fetch cache;
+  normal GitHub `blob`/`raw` links are auto-converted to `raw.githubusercontent.com`.
+- Keep a Changelog **parser** and **writer** with a clean round-trip; the parser
+  is tolerant of real-world files (unknown `###` headings fall back to *Changed*,
+  and dates are detected in GitHub, GitLab and conventional-changelog styles).
 - **Translations** for English, European Portuguese and Brazilian Portuguese;
   the generated file always uses canonical English section headings.
 - **Fluent plugin API**: `navigationLabel`, `navigationIcon`,

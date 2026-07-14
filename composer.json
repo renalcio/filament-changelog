@@ -1,5 +1,5 @@
 {
-    "name": "filamentphp/changelog",
+    "name": "anselmokossa/filament-changelog",
     "description": "Manage, read and generate Keep a Changelog files inside Filament — hybrid database + CHANGELOG.md workflow.",
     "keywords": [
         "laravel",

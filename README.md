@@ -60,7 +60,7 @@ database, and get a clean, read-only changelog page out of the box.
 ## Installation
 
 ```bash
-composer require filamentphp/changelog
+composer require anselmokossa/filament-changelog
 php artisan vendor:publish --tag="changelog-migrations"
 php artisan migrate
 php artisan vendor:publish --tag="changelog-config"

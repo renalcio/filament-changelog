@@ -42,6 +42,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Remote source (URL)
+    |--------------------------------------------------------------------------
+    |
+    | When "file" is an http(s) URL (e.g. a GitHub raw CHANGELOG.md), it is
+    | fetched and cached for this many seconds (0 disables the cache) with the
+    | given request timeout.
+    |
+    */
+    'remote_cache_ttl' => env('CHANGELOG_REMOTE_CACHE_TTL', 300),
+
+    'remote_timeout' => 5,
+
+    /*
+    |--------------------------------------------------------------------------
     | Multi-project support
     |--------------------------------------------------------------------------
     |

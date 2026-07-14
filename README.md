@@ -159,6 +159,15 @@ ChangelogPlugin::make()
     ->file('/srv/my-project/CHANGELOG.md');
 ```
 
+The file can also be a **remote URL** — e.g. read your `CHANGELOG.md` straight
+from GitHub. Remote content is cached (`CHANGELOG_REMOTE_CACHE_TTL`, default
+300s; `0` disables it):
+
+```php
+ChangelogPlugin::make()
+    ->fromUrl('https://raw.githubusercontent.com/acme/app/main/CHANGELOG.md');
+```
+
 In `file` mode the panel's edit/export buttons are hidden — the file is the
 single source of truth, and every page load re-parses it, so what you see always
 matches the file on disk.

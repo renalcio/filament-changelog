@@ -42,6 +42,12 @@ class ExportChangelogCommand extends Command
 
         $path = ChangelogSource::path($this->argument('file'));
 
+        if (ChangelogSource::isRemote($path)) {
+            $this->error("Cannot export to a URL: {$path}");
+
+            return self::FAILURE;
+        }
+
         file_put_contents($path, $markdown);
 
         $this->info("Wrote {$entries->count()} entries to {$path}");

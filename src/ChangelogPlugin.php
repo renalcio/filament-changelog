@@ -226,11 +226,20 @@ class ChangelogPlugin implements Plugin
     }
 
     /**
-     * Convenience: read live from the given CHANGELOG.md file.
+     * Convenience: read live from the given CHANGELOG.md — a local path or a
+     * remote http(s) URL (e.g. a GitHub raw link).
      */
     public function fromFile(string|Closure|null $path = 'CHANGELOG.md'): static
     {
         return $this->source('file')->file($path);
+    }
+
+    /**
+     * Convenience alias for reading live from a remote CHANGELOG.md URL.
+     */
+    public function fromUrl(string|Closure $url): static
+    {
+        return $this->fromFile($url);
     }
 
     public function getSource(): ?string

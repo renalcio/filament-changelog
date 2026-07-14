@@ -5,11 +5,14 @@ namespace Filament\Changelog\Support;
 use Filament\Changelog\ChangelogPlugin;
 use Filament\Changelog\Models\ChangelogEntry;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Throwable;
 
 /**
  * Resolves where changelog entries come from — the database, or a live parse of
- * the project's CHANGELOG.md file — and where that file lives on disk.
+ * the project's CHANGELOG.md (a local file or a remote URL, e.g. a GitHub raw
+ * link) — and where that source lives.
  */
 class ChangelogSource
 {
@@ -35,9 +38,9 @@ class ChangelogSource
     }
 
     /**
-     * Absolute path to the configured CHANGELOG.md. Fluent plugin config wins,
-     * then the config/env value; a relative value resolves from the app base
-     * path, an absolute one is used verbatim.
+     * The configured CHANGELOG.md location. Fluent plugin config wins, then the
+     * config/env value. A remote URL is returned as-is; a relative local path
+     * resolves from the app base path; an absolute one is used verbatim.
      */
     public static function path(?string $override = null): string
     {
@@ -45,7 +48,16 @@ class ChangelogSource
             ?: static::pluginValue('getFile')
             ?: config('changelog.file', 'CHANGELOG.md');
 
+        if (static::isRemote($file)) {
+            return $file;
+        }
+
         return str_starts_with($file, '/') ? $file : base_path($file);
+    }
+
+    public static function isRemote(string $path): bool
+    {
+        return str_starts_with($path, 'http://') || str_starts_with($path, 'https://');
     }
 
     /**
@@ -62,21 +74,57 @@ class ChangelogSource
     }
 
     /**
-     * Parse the CHANGELOG.md file into (unsaved) entries. Returns an empty
-     * collection when the file is missing.
+     * Parse the CHANGELOG.md source (local file or remote URL) into (unsaved)
+     * entries. Returns an empty collection when it cannot be read.
      *
      * @return Collection<int, ChangelogEntry>
      */
     public static function fromFile(): Collection
     {
-        $path = static::path();
+        $content = static::read(static::path());
 
-        if (! is_file($path)) {
+        if ($content === null) {
             return collect();
         }
 
-        $parsed = (new KeepAChangelogParser)->parse((string) file_get_contents($path));
+        $parsed = (new KeepAChangelogParser)->parse($content);
 
         return collect($parsed)->map(fn (array $attributes): ChangelogEntry => new ChangelogEntry($attributes));
+    }
+
+    /**
+     * Read the raw contents of a changelog location — a remote URL (cached) or
+     * a local file. Returns null when unreadable.
+     */
+    public static function read(string $path): ?string
+    {
+        if (static::isRemote($path)) {
+            return static::fetch($path);
+        }
+
+        return is_file($path) ? (string) file_get_contents($path) : null;
+    }
+
+    /**
+     * Fetch a remote changelog, cached for `changelog.remote_cache_ttl` seconds
+     * (0 disables caching) so the reader doesn't hit the network on every visit.
+     */
+    protected static function fetch(string $url): ?string
+    {
+        $get = function () use ($url): ?string {
+            try {
+                $response = Http::timeout((int) config('changelog.remote_timeout', 5))->get($url);
+
+                return $response->successful() ? $response->body() : null;
+            } catch (Throwable) {
+                return null;
+            }
+        };
+
+        $ttl = (int) config('changelog.remote_cache_ttl', 300);
+
+        return $ttl > 0
+            ? Cache::remember('changelog:remote:'.md5($url), $ttl, $get)
+            : $get();
     }
 }

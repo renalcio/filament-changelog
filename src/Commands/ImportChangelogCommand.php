@@ -10,23 +10,25 @@ use Illuminate\Console\Command;
 class ImportChangelogCommand extends Command
 {
     protected $signature = 'changelog:import
-        {file? : Path to the CHANGELOG.md file (defaults to config value)}
+        {file? : Path or URL of the CHANGELOG.md (defaults to config value)}
         {--project= : Tag imported entries with this project}
         {--fresh : Delete existing entries (scoped to project when given) before importing}';
 
-    protected $description = 'Import a CHANGELOG.md file into the changelog database.';
+    protected $description = 'Import a CHANGELOG.md (local file or URL) into the changelog database.';
 
     public function handle(): int
     {
         $path = ChangelogSource::path($this->argument('file'));
 
-        if (! is_file($path)) {
-            $this->error("File not found: {$path}");
+        $content = ChangelogSource::read($path);
+
+        if ($content === null) {
+            $this->error("Could not read changelog: {$path}");
 
             return self::FAILURE;
         }
 
-        $entries = (new KeepAChangelogParser)->parse((string) file_get_contents($path));
+        $entries = (new KeepAChangelogParser)->parse($content);
 
         if (empty($entries)) {
             $this->warn('No entries found — is the file in Keep a Changelog format?');

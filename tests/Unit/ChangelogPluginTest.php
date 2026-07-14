@@ -53,3 +53,11 @@ it('fromFile() sets both source and path', function () {
     expect($plugin->getSource())->toBe('file');
     expect($plugin->getFile())->toBe('/srv/app/CHANGELOG.md');
 });
+
+it('fromUrl() points the file source at a remote URL', function () {
+    $url = 'https://raw.githubusercontent.com/acme/app/main/CHANGELOG.md';
+    $plugin = ChangelogPlugin::make()->fromUrl($url);
+
+    expect($plugin->getSource())->toBe('file');
+    expect($plugin->getFile())->toBe($url);
+});

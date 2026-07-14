@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Read the changelog from a **remote URL** (e.g. a GitHub raw `CHANGELOG.md`)
+  via `->fromUrl()` / `->file('https://…')`, with a configurable fetch cache.
+
 ## [1.0.0] - 2026-07-14
 
 ### Added

@@ -1,0 +1,65 @@
+{
+    "name": "filamentphp/changelog",
+    "description": "Manage, read and generate Keep a Changelog files inside Filament — hybrid database + CHANGELOG.md workflow.",
+    "keywords": [
+        "laravel",
+        "filament",
+        "changelog",
+        "keep-a-changelog",
+        "release-notes",
+        "filament-plugin"
+    ],
+    "homepage": "https://github.com/anselmocossa/filament-changelog",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Anselmo Kossa",
+            "email": "anselmo.cossa@enh.co.mz",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "filament/filament": "^4.0|^5.0",
+        "illuminate/contracts": "^11.0|^12.0|^13.0",
+        "illuminate/support": "^11.0|^12.0|^13.0",
+        "spatie/laravel-package-tools": "^1.16"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.0",
+        "nunomaduro/collision": "^7.0|^8.0",
+        "orchestra/testbench": "^9.0|^10.0|^11.0",
+        "pestphp/pest": "^2.0|^3.0",
+        "pestphp/pest-plugin-laravel": "^2.0|^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Filament\\Changelog\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Filament\\Changelog\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/pest --no-coverage",
+        "lint": "vendor/bin/pint",
+        "lint-fix": "vendor/bin/pint --repair"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Filament\\Changelog\\ChangelogServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

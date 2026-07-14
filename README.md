@@ -1,10 +1,45 @@
-# Filament Changelog
+<p align="center">
+    <img src="art/banner.png" alt="Filament Changelog" width="100%">
+</p>
 
-Manage, read and generate [Keep a Changelog](https://keepachangelog.com/) files inside Filament.
+<h1 align="center">Filament Changelog</h1>
 
-It is **hybrid**: changelog entries live in your database (fully editable via a
-Filament resource, with grouping, filters and badges) **and** can be imported
-from / exported to a `CHANGELOG.md` file at any time — via the UI or artisan.
+<p align="center">
+    Manage, read and generate <a href="https://keepachangelog.com/">Keep a Changelog</a> files inside Filament.
+</p>
+
+<p align="center">
+    <img src="https://img.shields.io/badge/Filament-v5-FDAE4B?style=flat-square" alt="Filament v5">
+    <img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP 8.2+">
+    <img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 12">
+    <img src="https://img.shields.io/badge/tests-41%20passing-brightgreen?style=flat-square" alt="Tests">
+    <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="MIT License">
+</p>
+
+---
+
+A **hybrid** changelog for Filament: entries live in your database (fully
+editable via a Filament resource, with grouping, filters and badges) **and** can
+be imported from / exported to a `CHANGELOG.md` file at any time — via the UI or
+artisan. Point the reader at your own project's file, a remote GitHub URL, or the
+database, and get a clean, read-only changelog page out of the box.
+
+## Screenshots
+
+#### Reader page — grouped by version, typed sections, date badges
+
+<img src="art/screenshots/reader.png" alt="Changelog reader page" width="100%">
+
+#### Management resource — colored type badges, grouping, filters
+
+<img src="art/screenshots/manage.png" alt="Changelog management table" width="100%">
+
+<table>
+<tr>
+<td width="50%"><img src="art/screenshots/edit-form.png" alt="Edit a changelog entry"><br><em>Create / edit an entry</em></td>
+<td width="50%"><img src="art/screenshots/import-modal.png" alt="Import a CHANGELOG.md"><br><em>Import a <code>CHANGELOG.md</code> — upload or paste</em></td>
+</tr>
+</table>
 
 ## Features
 
@@ -15,6 +50,9 @@ from / exported to a `CHANGELOG.md` file at any time — via the UI or artisan.
 - 🏷️ Typed changes (Added, Changed, Deprecated, Removed, Fixed, Security) with colored badges
 - ⬆️ **Import** an existing `CHANGELOG.md` (upload, paste, or `changelog:import`)
 - ⬇️ **Export** the database back to a `CHANGELOG.md` (download, or `changelog:export`)
+- 🌍 **Translations** — English, European & Brazilian Portuguese (extendable)
+- 🔗 **Live file / remote source** — read your own `CHANGELOG.md` or a GitHub URL, re-parsed on every visit
+- 🛡️ **Shield-ready** — auto-discovered permissions, no hard dependency
 - 🗂️ Optional multi-project mode (one app, many changelogs)
 
 ## Installation

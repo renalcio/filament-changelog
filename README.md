@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="art/banner.png" alt="Filament Changelog" width="100%">
+    <img src="art/banner.png" alt="Filament Changelog" width="100%" class="filament-hidden">
 </p>
 
 <h1 align="center">Filament Changelog</h1>

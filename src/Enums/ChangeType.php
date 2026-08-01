@@ -2,6 +2,7 @@
 
 namespace Filament\Changelog\Enums;
 
+use Filament\Changelog\Support\Headings;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
@@ -66,10 +67,31 @@ enum ChangeType: string implements HasColor, HasIcon, HasLabel
     }
 
     /**
-     * Resolve a type from a Keep a Changelog "### Heading", case-insensitively.
+     * Resolve a type from a Keep a Changelog "### Heading".
+     *
+     * Aceita o inglês canónico ("Added") e o rótulo em qualquer língua que o
+     * pacote traduza ("Adicionado"), sem se importar com acentos, maiúsculas
+     * ou espaços a mais. Um changelog escrito em português deixou de ser lido
+     * como se estivesse todo em "Changed".
      */
     public static function fromHeading(string $heading): ?self
     {
-        return self::tryFrom(strtolower(trim($heading)));
+        $normalizado = Headings::normalizar($heading);
+
+        if ($normalizado === '') {
+            return null;
+        }
+
+        foreach (self::cases() as $tipo) {
+            if ($normalizado === $tipo->value) {
+                return $tipo;
+            }
+
+            if (in_array($normalizado, Headings::traduzidos('types.'.$tipo->value), true)) {
+                return $tipo;
+            }
+        }
+
+        return null;
     }
 }

@@ -24,12 +24,17 @@ class VersionGrouper
         // expect model keys and call getKey() on the groups.
         return collect($entries->all())
             ->groupBy('version')
-            ->sortBy(function (Collection $group, string $version): string {
-                if (strtolower($version) === 'unreleased') {
+            ->sortBy(function (Collection $group): string {
+                $primeira = $group->first();
+
+                // Pelo dado, não pela palavra: um changelog em português chama
+                // "Não lançado" à secção por lançar e ela caía no fundo da
+                // página, ordenada como texto.
+                if ($primeira !== null && ! $primeira->is_released) {
                     return '9999-99-99'; // reversed below → always first
                 }
 
-                $date = optional($group->first())->released_at;
+                $date = optional($primeira)->released_at;
 
                 return $date ? $date->format('Y-m-d') : '0000-00-00';
             })

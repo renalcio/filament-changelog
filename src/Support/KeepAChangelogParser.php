@@ -90,7 +90,7 @@ class KeepAChangelogParser
             $version = $heading;
         }
 
-        $isReleased = strtolower($version) !== 'unreleased';
+        $isReleased = ! Headings::ePorLancar($version);
         $releasedAt = $isReleased ? $this->extractDate($heading, $version) : null;
 
         return [$version, $releasedAt, $isReleased];

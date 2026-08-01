@@ -5,6 +5,31 @@ All notable changes to `filament-changelog` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-08-01
+
+### Fixed
+- **Changelogs written in a language other than English are now read
+  correctly.** `### Adicionado`, `### Corrigido` and every other translated
+  heading fell through the `?? ChangeType::Changed` fallback, so *every entry
+  of every version* was imported — and displayed — as "Changed". Headings are
+  now matched against the label the package itself renders in each bundled
+  language, ignoring accents, case and extra whitespace. Adding a translation
+  to the package now teaches the reader to parse files written in it.
+- **The unreleased section is recognised however it is spelled.** The check was
+  `strtolower($version) !== 'unreleased'`, so `## [Não lançado]` was imported as
+  a *released version literally named that*, with no date. It is matched against
+  the translated `reader.unreleased` label plus the spellings people actually
+  write by hand.
+- **The unreleased section sorts first again.** `VersionGrouper` also compared
+  the version string to `'unreleased'`, so a translated section sorted as plain
+  text and sank to the bottom of the page. It now reads `is_released` — the
+  data, not the label.
+
+### Added
+- `Support\Headings`, the shared vocabulary behind the above: `normalizar()`,
+  `ePorLancar()`, `traduzidos()` and `linguas()`. Public so an application can
+  reuse the same matching when it extends the parser.
+
 ## [1.1.0] - 2026-07-14
 
 ### Added

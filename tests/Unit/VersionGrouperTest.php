@@ -67,3 +67,28 @@ it('returns a plain support collection so key methods work on eloquent input', f
     expect($only->keys()->all())->toBe(['1.1.0'])
         ->and($only->get('1.1.0'))->toHaveCount(1);
 });
+
+it('puts the unreleased section first whatever it is called', function () {
+    // A secção por lançar reconhece-se pelo dado (`is_released`), não pela
+    // palavra: um changelog em português chama-lhe "Não lançado" e continuava
+    // a cair no fundo da página, ordenado como texto.
+    $entries = collect([
+        makeEntry(['version' => '1.0.0', 'released_at' => '2026-01-15']),
+        makeEntry(['version' => 'Não lançado', 'released_at' => null, 'is_released' => false]),
+        makeEntry(['version' => '1.1.0', 'released_at' => '2026-03-10']),
+    ]);
+
+    expect((new VersionGrouper)->group($entries)->keys()->all())
+        ->toBe(['Não lançado', '1.1.0', '1.0.0']);
+});
+
+it('uma versão lançada sem data não passa à frente das que têm', function () {
+    $entries = collect([
+        makeEntry(['version' => '1.1.0', 'released_at' => '2026-03-10']),
+        makeEntry(['version' => 'sem-data', 'released_at' => null]),
+        makeEntry(['version' => 'Por lançar', 'released_at' => null, 'is_released' => false]),
+    ]);
+
+    expect((new VersionGrouper)->group($entries)->keys()->all())
+        ->toBe(['Por lançar', '1.1.0', 'sem-data']);
+});

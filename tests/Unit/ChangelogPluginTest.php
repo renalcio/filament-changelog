@@ -75,6 +75,7 @@ it('leaves every optional setting unset (null) by default', function () {
     expect($plugin->getRemoteCacheTtl())->toBeNull();
     expect($plugin->getPolicy())->toBeNull();
     expect($plugin->isMultiProject())->toBeNull();
+    expect($plugin->getCluster())->toBeNull();
 });
 
 it('exposes fluent reader options', function () {
@@ -105,4 +106,10 @@ it('exposes fluent formatting, slug and advanced options', function () {
     expect($plugin->getRemoteCacheTtl())->toBe(0);
     expect($plugin->getPolicy())->toBe('App\\Policies\\ChangelogEntryPolicy');
     expect($plugin->isMultiProject())->toBeTrue();
+});
+
+it('configures the resource cluster fluently', function () {
+    $plugin = ChangelogPlugin::make()->cluster('App\\Filament\\Clusters\\Docs');
+
+    expect($plugin->getCluster())->toBe('App\\Filament\\Clusters\\Docs');
 });

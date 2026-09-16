@@ -1,7 +1,21 @@
 <?php
 
 // config for Filament/Changelog
+
+use Filament\Changelog\Models\ChangelogEntry;
+
 return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Database connection
+    |--------------------------------------------------------------------------
+    |
+    | Database used to store changelog entries when using the database source.
+    | set null to use default connection
+    |
+    */
+    'connection' => null,
 
     /*
     |--------------------------------------------------------------------------
@@ -12,6 +26,26 @@ return [
     |
     */
     'table' => 'changelog_entries',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Model class
+    |--------------------------------------------------------------------------
+    |
+    | Model class used to manage Changelog Entries
+    |
+    */
+    'model' => ChangelogEntry::class,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cluster class
+    |--------------------------------------------------------------------------
+    |
+    | Display ChangelogEntryResource in a Cluster
+    |
+    */
+    'cluster' => null,
 
     /*
     |--------------------------------------------------------------------------

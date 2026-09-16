@@ -39,6 +39,16 @@ class ChangelogEntryResource extends Resource
         }
     }
 
+    public static function getCluster(): ?string
+    {
+        return static::plugin()->getCluster() ?? config('changelog.cluster') ?? parent::getCluster();
+    }
+
+    public static function getModel(): string
+    {
+        return config('changelog.model') ?? parent::getModel();
+    }
+
     public static function getModelLabel(): string
     {
         return static::plugin()->getModelLabel()

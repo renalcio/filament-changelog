@@ -31,6 +31,11 @@ class ChangelogEntry extends Model
         return config('changelog.table', 'changelog_entries');
     }
 
+    public function getConnectionName(): ?string
+    {
+        return config('changelog.connection') ?? parent::getConnectionName();
+    }
+
     /**
      * Shape expected by the ChangelogWriter / parser round-trip.
      *

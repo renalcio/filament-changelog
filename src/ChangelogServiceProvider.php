@@ -4,7 +4,7 @@ namespace Filament\Changelog;
 
 use Filament\Changelog\Commands\ExportChangelogCommand;
 use Filament\Changelog\Commands\ImportChangelogCommand;
-use Filament\Changelog\Models\ChangelogEntry;
+use Filament\Changelog\Resources\ChangelogEntryResource;
 use Illuminate\Support\Facades\Gate;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -46,7 +46,7 @@ class ChangelogServiceProvider extends PackageServiceProvider
         $policy = config('changelog.policy') ?: 'App\\Policies\\ChangelogEntryPolicy';
 
         if (class_exists($policy)) {
-            Gate::policy(ChangelogEntry::class, $policy);
+            Gate::policy(ChangelogEntryResource::getModel(), $policy);
         }
     }
 }

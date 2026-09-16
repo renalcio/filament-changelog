@@ -121,7 +121,8 @@ ChangelogPlugin::make()
     // Routing & data
     ->slug('changelog')                         // string|Closure|null — reader page route slug
     ->resourceSlug('changelog/manage')          // string|Closure|null — management route slug
-    ->multiProject(false);                      // bool|Closure|null — scope entries by a "project" column
+    ->multiProject(false)                       // bool|Closure|null — scope entries by a "project" column
+    ->cluster(\App\Filament\Clusters\Docs::class); // string|Closure|null — display the resource in a Filament cluster
 ```
 
 ### Authorization (who can manage)
@@ -252,8 +253,16 @@ matches the file on disk.
 
 ## Configuration
 
-See `config/changelog.php` — reader source, file path, table name, change-type
-order, date format, multi-project toggle and navigation placement.
+See `config/changelog.php` — database connection, table name, model class,
+resource cluster, reader source, file path, change-type order, date format,
+multi-project toggle and navigation placement.
+
+- `connection` — database connection used by the `ChangelogEntry` model and its
+  migration (defaults to the app's default connection).
+- `model` — swap in your own model (e.g. to add casts or relationships); it must
+  extend `Filament\Changelog\Models\ChangelogEntry`.
+- `cluster` — display `ChangelogEntryResource` inside a Filament cluster; can
+  also be set fluently via `ChangelogPlugin::make()->cluster(...)`.
 
 ## License
 

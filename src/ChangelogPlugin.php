@@ -4,7 +4,6 @@ namespace Filament\Changelog;
 
 use BackedEnum;
 use Closure;
-use Filament\Changelog\Models\ChangelogEntry;
 use Filament\Changelog\Pages\ChangelogPage;
 use Filament\Changelog\Resources\ChangelogEntryResource;
 use Filament\Contracts\Plugin;
@@ -56,6 +55,12 @@ class ChangelogPlugin implements Plugin
     protected int|Closure|null $remoteCacheTtl = null;
 
     protected string|Closure|null $policy = null;
+
+    protected string|Closure|null $cluster = null;
+
+    protected string|Closure|null $connection = null;
+
+    protected string|Closure|null $model = null;
 
     protected bool|Closure|null $multiProject = null;
 
@@ -109,6 +114,9 @@ class ChangelogPlugin implements Plugin
             'changelog.remote_cache_ttl' => $this->remoteCacheTtl === null ? null : (int) value($this->remoteCacheTtl),
             'changelog.multi_project' => $this->multiProject === null ? null : (bool) value($this->multiProject),
             'changelog.policy' => value($this->policy),
+            'changelog.cluster' => value($this->cluster),
+            'changelog.model' => value($this->model),
+            'changelog.connection' => value($this->connection),
         ], fn ($value): bool => $value !== null);
 
         if ($overrides !== []) {
@@ -120,13 +128,20 @@ class ChangelogPlugin implements Plugin
         $policy = value($this->policy);
 
         if (is_string($policy) && class_exists($policy)) {
-            Gate::policy(ChangelogEntry::class, $policy);
+            Gate::policy(ChangelogEntryResource::getModel(), $policy);
         }
     }
 
     public function boot(Panel $panel): void
     {
         //
+    }
+
+    public function cluster(string|Closure|null $cluster): static
+    {
+        $this->cluster = $cluster;
+
+        return $this;
     }
 
     public function enabled(bool $enabled = true): static
@@ -307,6 +322,16 @@ class ChangelogPlugin implements Plugin
         return value($this->file);
     }
 
+    public function getConnection(): ?string
+    {
+        return value($this->connection);
+    }
+
+    public function getModel(): ?string
+    {
+        return value($this->model);
+    }
+
     public function getModelLabel(): ?string
     {
         return value($this->modelLabel);
@@ -477,6 +502,11 @@ class ChangelogPlugin implements Plugin
     public function getPolicy(): ?string
     {
         return value($this->policy);
+    }
+
+    public function getCluster(): ?string
+    {
+        return value($this->cluster);
     }
 
     public function isMultiProject(): ?bool

@@ -177,7 +177,7 @@ class ChangelogPage extends Page
                 ->visible(fn (): bool => ! ChangelogSource::isFile())
                 ->action(function (): StreamedResponse {
                     $markdown = (new ChangelogWriter)->render(
-                        ChangelogEntry::query()->orderBy('sort')->get()
+                        ChangelogEntryResource::getModel()::query()->orderBy('sort')->get()
                             ->map->toChangelogArray()
                     );
 

@@ -32,7 +32,38 @@ class ChangelogServiceProvider extends PackageServiceProvider
     {
         parent::packageBooted();
 
+        $this->ensureSqliteDatabaseExists();
         $this->bindPolicy();
+    }
+
+    /**
+     * Create the SQLite database file for the changelog connection when it
+     * doesn't exist yet. Laravel doesn't do this automatically, so migrating a
+     * dedicated SQLite connection (set via `changelog.connection`) fails on a
+     * fresh environment with "unable to open database file" unless the file
+     * (and its directory) is created first.
+     */
+    protected function ensureSqliteDatabaseExists(): void
+    {
+        $connection = config('changelog.connection') ?: config('database.default');
+
+        if (config("database.connections.{$connection}.driver") !== 'sqlite') {
+            return;
+        }
+
+        $database = config("database.connections.{$connection}.database");
+
+        if (blank($database) || $database === ':memory:' || file_exists($database)) {
+            return;
+        }
+
+        $directory = dirname($database);
+
+        if (! is_dir($directory)) {
+            mkdir($directory, recursive: true);
+        }
+
+        touch($database);
     }
 
     /**

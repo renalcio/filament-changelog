@@ -122,7 +122,9 @@ ChangelogPlugin::make()
     ->slug('changelog')                         // string|Closure|null — reader page route slug
     ->resourceSlug('changelog/manage')          // string|Closure|null — management route slug
     ->multiProject(false)                       // bool|Closure|null — scope entries by a "project" column
-    ->cluster(\App\Filament\Clusters\Docs::class); // string|Closure|null — display the resource in a Filament cluster
+    ->cluster(\App\Filament\Clusters\Docs::class) // string|Closure|null — display the resource in a Filament cluster
+    ->connection('changelog')                   // string|Closure|null — database connection for the model + migration
+    ->model(\App\Models\ChangelogEntry::class); // string|Closure|null — custom model (must extend the bundled one)
 ```
 
 ### Authorization (who can manage)
@@ -258,7 +260,9 @@ resource cluster, reader source, file path, change-type order, date format,
 multi-project toggle and navigation placement.
 
 - `connection` — database connection used by the `ChangelogEntry` model and its
-  migration (defaults to the app's default connection).
+  migration (defaults to the app's default connection). If that connection uses
+  the `sqlite` driver, the package creates the database file (and its parent
+  directory) automatically on boot when it doesn't exist yet.
 - `model` — swap in your own model (e.g. to add casts or relationships); it must
   extend `Filament\Changelog\Models\ChangelogEntry`.
 - `cluster` — display `ChangelogEntryResource` inside a Filament cluster; can

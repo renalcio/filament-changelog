@@ -2,8 +2,8 @@
 
 namespace Filament\Changelog\Models;
 
+use Filament\Changelog\ChangelogPlugin;
 use Filament\Changelog\Enums\ChangeType;
-use Filament\Changelog\Resources\ChangelogEntryResource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
@@ -34,7 +34,7 @@ class ChangelogEntry extends Model
 
     public function getConnectionName(): ?string
     {
-        return ChangelogEntryResource::plugin()->getConnection() ?? config('changelog.connection') ?? parent::getConnectionName();
+        return ChangelogPlugin::current()->getConnection() ?? config('changelog.connection') ?? parent::getConnectionName();
     }
 
     /**

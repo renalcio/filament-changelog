@@ -9,6 +9,7 @@ use Filament\Changelog\Resources\ChangelogEntryResource;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 use Illuminate\Support\Facades\Gate;
+use Throwable;
 use UnitEnum;
 
 class ChangelogPlugin implements Plugin
@@ -77,6 +78,21 @@ class ChangelogPlugin implements Plugin
         return $plugin;
     }
 
+    /**
+     * The registered plugin instance when a panel context is available
+     * (e.g. resources, pages, the model), falling back to a fresh instance
+     * outside of one (e.g. artisan commands, tests) so callers always get a
+     * usable plugin without needing their own try/catch.
+     */
+    public static function current(): static
+    {
+        try {
+            return static::get();
+        } catch (Throwable) {
+            return static::make();
+        }
+    }
+
     public function getId(): string
     {
         return 'changelog';
@@ -140,6 +156,26 @@ class ChangelogPlugin implements Plugin
     public function cluster(string|Closure|null $cluster): static
     {
         $this->cluster = $cluster;
+
+        return $this;
+    }
+
+    /**
+     * Database connection used by the ChangelogEntry model and its migration.
+     */
+    public function connection(string|Closure|null $connection): static
+    {
+        $this->connection = $connection;
+
+        return $this;
+    }
+
+    /**
+     * Model class used in place of the bundled ChangelogEntry.
+     */
+    public function model(string|Closure|null $model): static
+    {
+        $this->model = $model;
 
         return $this;
     }

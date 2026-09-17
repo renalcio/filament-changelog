@@ -16,7 +16,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
-use Throwable;
 use UnitEnum;
 
 /**
@@ -32,11 +31,7 @@ class ChangelogEntryResource extends Resource
 
     protected static function plugin(): ChangelogPlugin
     {
-        try {
-            return ChangelogPlugin::get();
-        } catch (Throwable) {
-            return ChangelogPlugin::make();
-        }
+        return ChangelogPlugin::current();
     }
 
     public static function getCluster(): ?string
@@ -46,7 +41,7 @@ class ChangelogEntryResource extends Resource
 
     public static function getModel(): string
     {
-        return static::plugin()->getModel() ??  config('changelog.model') ?? parent::getModel();
+        return static::plugin()->getModel() ?? config('changelog.model') ?? parent::getModel();
     }
 
     public static function getModelLabel(): string

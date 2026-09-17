@@ -27,7 +27,6 @@ use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Throwable;
 use UnitEnum;
 
 class ChangelogPage extends Page
@@ -61,11 +60,7 @@ class ChangelogPage extends Page
 
     protected static function plugin(): ChangelogPlugin
     {
-        try {
-            return ChangelogPlugin::get();
-        } catch (Throwable) {
-            return ChangelogPlugin::make();
-        }
+        return ChangelogPlugin::current();
     }
 
     public static function getNavigationLabel(): string

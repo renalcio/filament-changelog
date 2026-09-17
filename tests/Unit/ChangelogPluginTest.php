@@ -76,6 +76,8 @@ it('leaves every optional setting unset (null) by default', function () {
     expect($plugin->getPolicy())->toBeNull();
     expect($plugin->isMultiProject())->toBeNull();
     expect($plugin->getCluster())->toBeNull();
+    expect($plugin->getConnection())->toBeNull();
+    expect($plugin->getModel())->toBeNull();
 });
 
 it('exposes fluent reader options', function () {
@@ -112,4 +114,16 @@ it('configures the resource cluster fluently', function () {
     $plugin = ChangelogPlugin::make()->cluster('App\\Filament\\Clusters\\Docs');
 
     expect($plugin->getCluster())->toBe('App\\Filament\\Clusters\\Docs');
+});
+
+it('configures the database connection fluently', function () {
+    $plugin = ChangelogPlugin::make()->connection('changelog');
+
+    expect($plugin->getConnection())->toBe('changelog');
+});
+
+it('configures the model class fluently', function () {
+    $plugin = ChangelogPlugin::make()->model('App\\Models\\ChangelogEntry');
+
+    expect($plugin->getModel())->toBe('App\\Models\\ChangelogEntry');
 });

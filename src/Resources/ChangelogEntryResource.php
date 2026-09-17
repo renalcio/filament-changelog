@@ -46,7 +46,7 @@ class ChangelogEntryResource extends Resource
 
     public static function getModel(): string
     {
-        return config('changelog.model') ?? parent::getModel();
+        return static::plugin()->getModel() ??  config('changelog.model') ?? parent::getModel();
     }
 
     public static function getModelLabel(): string

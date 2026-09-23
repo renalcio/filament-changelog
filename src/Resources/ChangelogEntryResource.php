@@ -63,9 +63,12 @@ class ChangelogEntryResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        // Only the reader page appears in the sidebar. This management area is
-        // reached via the "Manage" button on the reader page.
-        return false;
+        // When nested inside a cluster (see getCluster()), the cluster's own
+        // sub-navigation is the whole point of placing the resource there, so
+        // it must register to appear in it. Otherwise, only the reader page
+        // appears in the sidebar; this management area is reached via the
+        // "Manage" button on the reader page.
+        return static::getCluster() !== null;
     }
 
     /**

@@ -63,6 +63,12 @@ class ChangelogPage extends Page
         return ChangelogPlugin::current();
     }
 
+
+    public static function getCluster(): ?string
+    {
+        return static::plugin()->getCluster() ?? config('changelog.cluster') ?? parent::getCluster();
+    }
+
     public static function getNavigationLabel(): string
     {
         return static::plugin()->getNavigationLabel()
